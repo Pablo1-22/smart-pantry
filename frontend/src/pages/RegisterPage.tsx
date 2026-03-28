@@ -1,0 +1,111 @@
+import { useState, type FormEvent } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+export default function RegisterPage() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (password !== passwordConfirm) {
+      setError("Hasła nie są identyczne");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Hasło musi mieć co najmniej 6 znaków");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await register({ email, password, display_name: displayName });
+      navigate("/login", { state: { registered: true } });
+    } catch (err: any) {
+      setError(err.response?.data?.detail ?? "Błąd rejestracji");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1>Rejestracja</h1>
+        <p className="auth-subtitle">Utwórz konto w Smart Pantry</p>
+
+        {error && <div className="alert alert-error">{error}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="displayName">Nazwa użytkownika</label>
+            <input
+              id="displayName"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Jan Kowalski"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="jan@example.com"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Hasło</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Min. 6 znaków"
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="passwordConfirm">Powtórz hasło</label>
+            <input
+              id="passwordConfirm"
+              type="password"
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? "Rejestracja…" : "Zarejestruj się"}
+          </button>
+        </form>
+
+        <p className="auth-footer">
+          Masz już konto? <Link to="/login">Zaloguj się</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
