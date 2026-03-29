@@ -26,6 +26,7 @@ export default function ProductForm({
   submitLabel = "Zapisz",
 }: Props) {
   const [name, setName] = useState(initial.name ?? "");
+  const [barcode, setBarcode] = useState(initial.barcode ?? "");
   const [quantity, setQuantity] = useState(String(initial.quantity ?? "1"));
   const [unit, setUnit] = useState(initial.unit ?? "szt");
   const [category, setCategory] = useState(initial.category ?? "");
@@ -51,6 +52,7 @@ export default function ProductForm({
     try {
       await onSubmit({
         name: name.trim(),
+        barcode: barcode.trim() || undefined,
         quantity: qty,
         unit,
         category: category || undefined,
@@ -77,6 +79,18 @@ export default function ProductForm({
           onChange={(e) => setName(e.target.value)}
           placeholder="np. Mleko"
           required
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="pf-barcode">Kod kreskowy</label>
+        <input
+          id="pf-barcode"
+          type="text"
+          inputMode="numeric"
+          value={barcode}
+          onChange={(e) => setBarcode(e.target.value)}
+          placeholder="np. 5900259127626"
         />
       </div>
 

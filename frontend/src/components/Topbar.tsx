@@ -1,5 +1,6 @@
 import { Link, useNavigate, useMatch } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 export default function Topbar() {
   const { user, logout } = useAuth();
@@ -16,10 +17,7 @@ export default function Topbar() {
   return (
     <header className="topbar">
       <Link to="/" className="topbar-brand">
-        <span className="topbar-brand-icon">🥫</span>
-        <span className="topbar-brand-name">
-          Smart<span>Pantry</span>
-        </span>
+        <img src={logo} alt="SmartPantry" className="topbar-brand-logo" />
       </Link>
 
       {user && (

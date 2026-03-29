@@ -14,12 +14,51 @@ function save(icons: Record<string, string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(icons));
 }
 
-export const PANTRY_ICON_OPTIONS = [
-  "🧺", "🫙", "🥡", "🫕", "🍱", "🧊", "🛒", "🍶",
-  "🥘", "🍲", "🥗", "🍜", "🧆", "🧀", "🥚", "🥞",
-  "🥩", "🍗", "🥦", "🥕", "🫐", "🍎", "🍋", "🌽",
-  "🥑", "🍄", "🫒", "🥜", "🍇", "🍓", "🧁", "🫖",
+export interface IconGroup {
+  label: string;
+  icons: string[];
+}
+
+export const ICON_GROUPS: IconGroup[] = [
+  {
+    label: "Pojemniki i sprzęt",
+    icons: ["🧺", "🫙", "🥡", "🍱", "🧊", "🛒", "🫕", "🍶", "🥣", "🧃", "🫗", "🪣", "🥢", "🍽️", "🫙", "🧴"],
+  },
+  {
+    label: "Dania i posiłki",
+    icons: ["🥘", "🍲", "🥗", "🍜", "🍛", "🍝", "🍣", "🍤", "🌮", "🌯", "🥙", "🍔", "🌭", "🥪", "🍕", "🫔"],
+  },
+  {
+    label: "Nabiał i jaja",
+    icons: ["🧀", "🥚", "🥞", "🧇", "🥐", "🍳", "🥛", "🧈"],
+  },
+  {
+    label: "Mięso i ryby",
+    icons: ["🥩", "🍗", "🥓", "🍖", "🦐", "🦞", "🦀", "🐟", "🍱", "🥚"],
+  },
+  {
+    label: "Warzywa",
+    icons: ["🥦", "🥕", "🌽", "🥑", "🍄", "🫒", "🥔", "🧅", "🧄", "🥬", "🥒", "🫑", "🌶️", "🍅", "🫛", "🌿"],
+  },
+  {
+    label: "Owoce",
+    icons: ["🍎", "🍊", "🍋", "🍇", "🍓", "🫐", "🍑", "🍒", "🥭", "🍍", "🥝", "🍐", "🍈", "🫙", "🌰", "🥜"],
+  },
+  {
+    label: "Pieczywo i słodycze",
+    icons: ["🍞", "🥖", "🥨", "🧆", "🥯", "🧁", "🎂", "🍰", "🍩", "🍪", "🍫", "🍬", "🍭", "🍮", "🥧", "🧋"],
+  },
+  {
+    label: "Napoje",
+    icons: ["🫖", "☕", "🍵", "🧉", "🍺", "🍷", "🥂", "🍸", "🍹", "🧃", "🥤", "🫧", "🍶", "🧊", "🌊", "💧"],
+  },
+  {
+    label: "Chemia i dom",
+    icons: ["🧼", "🧴", "🪣", "🧹", "🧺", "🧻", "🪴", "🏠", "🏡", "🌱", "🌿", "✨"],
+  },
 ];
+
+export const PANTRY_ICON_OPTIONS = ICON_GROUPS.flatMap((g) => g.icons);
 
 export const DEFAULT_ICON = "🧺";
 

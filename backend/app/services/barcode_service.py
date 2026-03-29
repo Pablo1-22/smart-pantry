@@ -21,7 +21,7 @@ async def lookup_barcode(code: str) -> BarcodeResponse:
     product = data.get("product", {})
     return BarcodeResponse(
         barcode=code,
-        name=product.get("product_name"),
+        name=product.get("product_name_pl") or product.get("product_name"),
         category=product.get("categories", "").split(",")[0].strip() or None,
         image_url=product.get("image_url"),
         found=True,
