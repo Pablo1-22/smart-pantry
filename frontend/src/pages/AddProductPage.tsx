@@ -14,7 +14,7 @@ export default function AddProductPage() {
   }
 
   return (
-    <div className="page">
+    <div className="main-content">
       <div className="page-header">
         <div className="page-header-left">
           <button

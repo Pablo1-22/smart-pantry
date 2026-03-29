@@ -1,0 +1,56 @@
+import { Link, useNavigate, useMatch } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+export default function Topbar() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const onDashboard = useMatch("/");
+  const onPantry = useMatch("/pantries/:id");
+  const onAdd = useMatch("/pantries/:id/products/new");
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
+
+  return (
+    <header className="topbar">
+      <Link to="/" className="topbar-brand">
+        <span className="topbar-brand-icon">🥫</span>
+        <span className="topbar-brand-name">
+          Smart<span>Pantry</span>
+        </span>
+      </Link>
+
+      {user && (
+        <nav className="topbar-nav">
+          <Link to="/" className={onDashboard ? "active" : ""}>
+            Spiżarnie
+          </Link>
+          {(onPantry || onAdd) && (
+            <Link to={window.location.pathname.split("/products")[0]} className="active">
+              Produkty
+            </Link>
+          )}
+        </nav>
+      )}
+
+      <div className="topbar-actions">
+        {user ? (
+          <button className="btn btn-outline btn-sm" onClick={handleLogout}>
+            Wyloguj
+          </button>
+        ) : (
+          <>
+            <Link to="/login" className="btn btn-outline btn-sm">
+              Logowanie
+            </Link>
+            <Link to="/register" className="btn btn-primary btn-sm">
+              Rejestracja
+            </Link>
+          </>
+        )}
+      </div>
+    </header>
+  );
+}

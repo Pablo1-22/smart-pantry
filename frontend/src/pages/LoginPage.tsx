@@ -29,8 +29,12 @@ export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
+        <div className="auth-logo">
+          <span className="auth-logo-icon">🥫</span>
+          <span className="auth-logo-name">Smart<span>Pantry</span></span>
+        </div>
         <h1>Logowanie</h1>
-        <p className="auth-subtitle">Zaloguj się do Smart Pantry</p>
+        <p className="auth-subtitle">Zaloguj się do swojego konta</p>
 
         {error && <div className="alert alert-error">{error}</div>}
 
@@ -59,7 +63,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <button type="submit" className="btn btn-primary-full" disabled={loading}>
             {loading ? "Logowanie…" : "Zaloguj się"}
           </button>
         </form>

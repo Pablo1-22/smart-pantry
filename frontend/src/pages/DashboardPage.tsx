@@ -1,23 +1,34 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePantries } from "../hooks/usePantries";
+import { usePantryIcons, DEFAULT_ICON } from "../hooks/usePantryIcons";
+import IconPicker from "../components/IconPicker";
 
 export default function DashboardPage() {
   const { pantries, loading, error, add, remove } = usePantries();
+  const { getIcon, setIcon, removeIcon } = usePantryIcons();
   const navigate = useNavigate();
 
   const [newName, setNewName] = useState("");
+  const [newIcon, setNewIcon] = useState(DEFAULT_ICON);
+  const [showPicker, setShowPicker] = useState(false);
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState("");
 
-  async function handleCreate(e: FormEvent) {
+  // Picker for existing pantry
+  const [editingIconId, setEditingIconId] = useState<string | null>(null);
+
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim()) return;
     setFormError("");
     setCreating(true);
     try {
       const pantry = await add(newName.trim());
+      setIcon(pantry.id, newIcon);
       setNewName("");
+      setNewIcon(DEFAULT_ICON);
+      setShowPicker(false);
       navigate(`/pantries/${pantry.id}`);
     } catch {
       setFormError("Nie udało się utworzyć spiżarni");
@@ -31,34 +42,51 @@ export default function DashboardPage() {
       return;
     try {
       await remove(pantryId);
+      removeIcon(pantryId);
     } catch {
       alert("Nie udało się usunąć spiżarni");
     }
   }
 
   return (
-    <div className="page">
+    <div className="main-content">
       <div className="page-header">
         <h1>Moje spiżarnie</h1>
       </div>
 
+      {/* Create form */}
       <form className="create-pantry-form" onSubmit={handleCreate}>
+        <button
+          type="button"
+          className="icon-trigger"
+          onClick={() => setShowPicker((v) => !v)}
+          title="Wybierz ikonę"
+        >
+          {newIcon}
+        </button>
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Nazwa nowej spiżarni…"
           disabled={creating}
+          onFocus={() => setShowPicker(false)}
         />
         <button
           type="submit"
           className="btn btn-primary btn-sm"
           disabled={creating || !newName.trim()}
         >
-          {creating ? "Tworzenie…" : "+ Utwórz"}
+          {creating ? "Tworzenie…" : "Utwórz"}
         </button>
         {formError && <span className="inline-error">{formError}</span>}
       </form>
+
+      {showPicker && (
+        <div className="picker-dropdown">
+          <IconPicker value={newIcon} onChange={(ic) => { setNewIcon(ic); setShowPicker(false); }} />
+        </div>
+      )}
 
       {loading && <p className="loading">Ładowanie…</p>}
       {error && <div className="alert alert-error">{error}</div>}
@@ -72,12 +100,20 @@ export default function DashboardPage() {
 
       <div className="pantry-grid">
         {pantries.map((pantry) => (
-          <div
-            key={pantry.id}
-            className="pantry-card"
-            onClick={() => navigate(`/pantries/${pantry.id}`)}
-          >
+          <div key={pantry.id} className="pantry-card" onClick={() => navigate(`/pantries/${pantry.id}`)}>
             <div className="pantry-card-body">
+              {/* Icon — click to change */}
+              <button
+                type="button"
+                className="pantry-icon-btn"
+                title="Zmień ikonę"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingIconId(editingIconId === pantry.id ? null : pantry.id);
+                }}
+              >
+                {getIcon(pantry.id)}
+              </button>
               <h2>{pantry.name}</h2>
               <span className="pantry-date">
                 {new Date(pantry.created_at).toLocaleDateString("pl-PL")}
@@ -86,13 +122,23 @@ export default function DashboardPage() {
             <button
               className="btn-icon btn-danger"
               title="Usuń spiżarnię"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(pantry.id, pantry.name);
-              }}
+              onClick={(e) => { e.stopPropagation(); handleDelete(pantry.id, pantry.name); }}
             >
               ✕
             </button>
+
+            {/* Inline picker for this card */}
+            {editingIconId === pantry.id && (
+              <div
+                className="card-picker"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <IconPicker
+                  value={getIcon(pantry.id)}
+                  onChange={(ic) => { setIcon(pantry.id, ic); setEditingIconId(null); }}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
