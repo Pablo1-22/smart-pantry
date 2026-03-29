@@ -5,6 +5,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import PantryPage from "./pages/PantryPage";
+import AddProductPage from "./pages/AddProductPage";
 
 export default function App() {
   return (
@@ -20,6 +22,22 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pantries/:pantryId"
+              element={
+                <ProtectedRoute>
+                  <PantryPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pantries/:pantryId/products/new"
+              element={
+                <ProtectedRoute>
+                  <AddProductPage />
                 </ProtectedRoute>
               }
             />
