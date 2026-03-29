@@ -1,5 +1,6 @@
 import uuid
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,9 +54,9 @@ async def refresh(data: TokenRefresh):
     try:
         payload = decode_token(data.refresh_token)
         if payload.get("type") != "refresh":
-            raise ValueError()
+            raise ValueError("Not a refresh token")
         user_id = uuid.UUID(payload["sub"])
-    except Exception:
+    except (jwt.PyJWTError, ValueError, KeyError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
 
     return TokenPair(

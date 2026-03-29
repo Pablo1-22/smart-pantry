@@ -1,13 +1,20 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
     display_name: str
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Hasło musi mieć co najmniej 8 znaków")
+        return v
 
 
 class UserLogin(BaseModel):

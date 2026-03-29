@@ -20,7 +20,12 @@ const CATEGORIES = [
 export default function PantryPage() {
   const { pantryId } = useParams<{ pantryId: string }>();
   const navigate = useNavigate();
-  const { products, loading, error, update, remove, refresh } = useProducts(pantryId!);
+
+  if (!pantryId) {
+    return <div className="alert alert-error">Brak identyfikatora spiżarni</div>;
+  }
+
+  const { products, loading, error, update, remove, refresh } = useProducts(pantryId);
 
   const [pantryName, setPantryName] = useState("");
   const [search, setSearch] = useState("");

@@ -20,6 +20,7 @@ export default function EditProductModal({ product, onSave, onClose }: Props) {
         <ProductForm
           initial={{
             name: product.name,
+            barcode: product.barcode ?? "",
             quantity: product.quantity,
             unit: product.unit,
             category: product.category ?? "",

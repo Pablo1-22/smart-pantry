@@ -100,8 +100,19 @@ async def list_members(
 async def invite_member(
     data: PantryInvite,
     pantry_id: uuid.UUID = Depends(verify_pantry_access),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    owner_check = await db.execute(
+        select(PantryMember).where(
+            PantryMember.pantry_id == pantry_id,
+            PantryMember.user_id == user.id,
+        )
+    )
+    caller = owner_check.scalar_one()
+    if caller.role != MemberRole.OWNER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only owner can invite members")
+
     result = await db.execute(select(User).where(User.email == data.email))
     invited_user = result.scalar_one_or_none()
     if not invited_user:

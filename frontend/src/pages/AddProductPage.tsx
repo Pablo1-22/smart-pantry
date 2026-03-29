@@ -39,7 +39,12 @@ function mapCategory(raw: string | null): string | undefined {
 export default function AddProductPage() {
   const { pantryId } = useParams<{ pantryId: string }>();
   const navigate = useNavigate();
-  const { add } = useProducts(pantryId!);
+
+  if (!pantryId) {
+    return <div className="alert alert-error">Brak identyfikatora spiżarni</div>;
+  }
+
+  const { add } = useProducts(pantryId);
 
   const [showScanner, setShowScanner] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);

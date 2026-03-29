@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
@@ -19,8 +20,8 @@ export default function LoginPage() {
     try {
       await login({ email, password });
       navigate("/");
-    } catch (err: any) {
-      setError(err.response?.data?.detail ?? "Błąd logowania");
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? err.response?.data?.detail ?? "Błąd logowania" : "Błąd logowania");
     } finally {
       setLoading(false);
     }

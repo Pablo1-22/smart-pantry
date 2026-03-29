@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, date
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ProductCreate(BaseModel):
@@ -14,6 +14,13 @@ class ProductCreate(BaseModel):
     expiry_date: Optional[date] = None
     min_quantity: float = 0.0
 
+    @field_validator("quantity", "min_quantity")
+    @classmethod
+    def must_be_non_negative(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("Wartość nie może być ujemna")
+        return v
+
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -23,6 +30,13 @@ class ProductUpdate(BaseModel):
     category: Optional[str] = None
     expiry_date: Optional[date] = None
     min_quantity: Optional[float] = None
+
+    @field_validator("quantity", "min_quantity")
+    @classmethod
+    def must_be_non_negative(cls, v: Optional[float]) -> Optional[float]:
+        if v is not None and v < 0:
+            raise ValueError("Wartość nie może być ujemna")
+        return v
 
 
 class ProductResponse(BaseModel):

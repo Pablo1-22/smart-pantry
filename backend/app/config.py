@@ -7,13 +7,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/smart_pantry"
 
     # JWT
-    JWT_SECRET_KEY: str = "super-secret-key-change-in-production"
+    JWT_SECRET_KEY: str = "86XmtomAX9S15Ax8obcHiZCwGIMGnsfnkNI6_1TtMH8"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
     # Open Food Facts
     OPEN_FOOD_FACTS_URL: str = "https://world.openfoodfacts.org/api/v2/product"

@@ -30,4 +30,6 @@ async def generate_shopping_list(pantry_id: uuid.UUID, db: AsyncSession) -> list
         items.append(item)
 
     await db.flush()
+    for item in items:
+        await db.refresh(item)
     return items

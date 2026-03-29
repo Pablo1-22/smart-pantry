@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import axios from "axios";
 import type { ProductCreate } from "../api/products";
 
 const UNITS = ["szt", "kg", "g", "l", "ml"];
@@ -59,8 +60,8 @@ export default function ProductForm({
         expiry_date: expiryDate || undefined,
         min_quantity: isNaN(minQty) ? 0 : minQty,
       });
-    } catch (err: any) {
-      setError(err.response?.data?.detail ?? "Błąd zapisu");
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? err.response?.data?.detail ?? "Błąd zapisu" : "Błąd zapisu");
     } finally {
       setLoading(false);
     }

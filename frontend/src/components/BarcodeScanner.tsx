@@ -10,6 +10,8 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   const doneRef = useRef(false);
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
 
   const [cameraError, setCameraError] = useState("");
   const [manualCode, setManualCode] = useState("");
@@ -23,7 +25,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
         if (result && !doneRef.current) {
           doneRef.current = true;
           controlsRef.current?.stop();
-          onScan(result.getText());
+          onScanRef.current(result.getText());
         }
       })
       .then((controls) => {
@@ -36,7 +38,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
     return () => {
       controlsRef.current?.stop();
     };
-  }, [onScan]);
+  }, []);
 
   function handleManualSubmit(e: FormEvent) {
     e.preventDefault();
@@ -44,7 +46,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
     if (!code) return;
     doneRef.current = true;
     controlsRef.current?.stop();
-    onScan(code);
+    onScanRef.current(code);
   }
 
   return (

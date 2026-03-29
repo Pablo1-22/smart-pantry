@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
 export default function RegisterPage() {
@@ -22,8 +23,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Hasło musi mieć co najmniej 6 znaków");
+    if (password.length < 8) {
+      setError("Hasło musi mieć co najmniej 8 znaków");
       return;
     }
 
@@ -32,8 +33,8 @@ export default function RegisterPage() {
     try {
       await register({ email, password, display_name: displayName });
       navigate("/login", { state: { registered: true } });
-    } catch (err: any) {
-      setError(err.response?.data?.detail ?? "Błąd rejestracji");
+    } catch (err: unknown) {
+      setError(axios.isAxiosError(err) ? err.response?.data?.detail ?? "Błąd rejestracji" : "Błąd rejestracji");
     } finally {
       setLoading(false);
     }
@@ -83,9 +84,9 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min. 6 znaków"
+              placeholder="Min. 8 znaków"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 
