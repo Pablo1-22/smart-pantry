@@ -1,5 +1,6 @@
 import { Link, useNavigate, useMatch } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import SyncStatus from "./SyncStatus";
 import logo from "../assets/logo.png";
 
 export default function Topbar() {
@@ -32,6 +33,8 @@ export default function Topbar() {
           )}
         </nav>
       )}
+
+      {user && <SyncStatus />}
 
       <div className="topbar-actions">
         {user ? (

@@ -994,3 +994,23 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* ===== SyncStatus badge ===== */
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: default;
+  white-space: nowrap;
+}
+.sync-badge--online   { background: rgba(74,222,128,0.15); color: #4ade80; }
+.sync-badge--offline  { background: rgba(248,113,113,0.15); color: #f87171; }
+.sync-badge--syncing  { background: rgba(96,165,250,0.15);  color: #60a5fa; }
+.sync-badge--pending  { background: rgba(251,191,36,0.15);  color: #fbbf24; cursor: pointer; }
+.sync-badge--error    { background: rgba(248,113,113,0.15); color: #f87171; cursor: pointer; }
