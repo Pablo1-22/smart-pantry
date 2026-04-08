@@ -15,21 +15,28 @@ export type SyncState = "idle" | "syncing" | "offline" | "error";
 
 interface SyncContextValue {
   isOnline: boolean;
+  forcedOffline: boolean;
   syncState: SyncState;
   pendingCount: number;
   sync: () => Promise<void>;
   refreshPendingCount: () => Promise<void>;
+  toggleForcedOffline: () => void;
 }
 
 const SyncContext = createContext<SyncContextValue | null>(null);
 
 export function SyncProvider({ children }: { children: ReactNode }) {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [navigatorOnline, setNavigatorOnline] = useState(navigator.onLine);
+  const [forcedOffline, setForcedOffline] = useState(false);
+  const isOnline = navigatorOnline && !forcedOffline;
+
   const [syncState, setSyncState] = useState<SyncState>(
     navigator.onLine ? "idle" : "offline"
   );
   const [pendingCount, setPendingCount] = useState(0);
   const syncingRef = useRef(false);
+  const isOnlineRef = useRef(isOnline);
+  useEffect(() => { isOnlineRef.current = isOnline; }, [isOnline]);
 
   const refreshPendingCount = useCallback(async () => {
     const count = await db.pending_actions.count();
@@ -38,17 +45,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   const pullChanges = useCallback(async () => {
     try {
-      // Pełny pull (bez since) — jedyny sposób by wykryć produkty usunięte na serwerze.
-      // Inkrementalny pull zwróciłby tylko zmienione rekordy i nie wiedziałby o usunięciach.
       const { data: fresh } = await client.get<Product[]>("/api/sync/pull");
 
-      // Upsert wszystkich aktualnych produktów z serwera
       if (fresh.length > 0) {
         await db.products.bulkPut(fresh);
       }
 
-      // Usuń z IndexedDB produkty, których serwer już nie zwrócił (skasowane)
-      // Wyjątek: produkty z oczekującym offline create — jeszcze nie trafiły na serwer
       const pendingCreates = await db.pending_actions
         .filter((a) => a.type === "create")
         .toArray();
@@ -86,7 +88,6 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       results: { index: number; success: boolean; product?: Product }[];
     }>("/api/sync/push", { actions: payload });
 
-    // Zaktualizuj lokalne produkty danymi potwierdzonymi przez serwer
     const updates: Product[] = [];
     for (const result of data.results) {
       if (result.success && result.product) {
@@ -97,7 +98,6 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       await db.products.bulkPut(updates);
     }
 
-    // Usuń tylko akcje, które się powiodły — failed zostają do ponowienia
     const successfulIndices = new Set(
       data.results.filter((r) => r.success).map((r) => r.index)
     );
@@ -122,7 +122,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const sync = useCallback(async () => {
-    if (syncingRef.current || !navigator.onLine) return;
+    if (syncingRef.current || !isOnlineRef.current) return;
     syncingRef.current = true;
     setSyncState("syncing");
     try {
@@ -136,14 +136,28 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     }
   }, [pushOfflineQueue, pullChanges]);
 
-  // Nasłuch online / offline
+  const toggleForcedOffline = useCallback(() => {
+    setForcedOffline((prev) => {
+      const goingOnline = prev === true;
+      if (goingOnline) {
+        // Powrót do trybu online — sync po aktualizacji stanu
+        setTimeout(sync, 0);
+      } else {
+        setSyncState("offline");
+      }
+      return !prev;
+    });
+  }, [sync]);
+
+  // Nasłuch prawdziwego online / offline
   useEffect(() => {
     const onOnline = () => {
-      setIsOnline(true);
-      sync();
+      setNavigatorOnline(true);
+      // Sync tylko jeśli użytkownik nie wymusił trybu offline
+      if (!forcedOffline) sync();
     };
     const onOffline = () => {
-      setIsOnline(false);
+      setNavigatorOnline(false);
       setSyncState("offline");
     };
     window.addEventListener("online", onOnline);
@@ -152,7 +166,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
     };
-  }, [sync]);
+  }, [sync, forcedOffline]);
 
   // Inicjalne pobranie danych przy montowaniu
   useEffect(() => {
@@ -164,7 +178,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   return (
     <SyncContext.Provider
-      value={{ isOnline, syncState, pendingCount, sync, refreshPendingCount }}
+      value={{ isOnline, forcedOffline, syncState, pendingCount, sync, refreshPendingCount, toggleForcedOffline }}
     >
       {children}
     </SyncContext.Provider>

@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
+import { useAuth } from "../context/AuthContext";
 import ProductCard from "../components/ProductCard";
 import EditProductModal from "../components/EditProductModal";
+import PantryMembersModal from "../components/PantryMembersModal";
 import type { Product, ProductCreate } from "../api/products";
-import { listPantries } from "../api/pantries";
+import { listPantries, type Pantry } from "../api/pantries";
 
 const CATEGORIES = [
   { label: "Wszystkie",       icon: "🏠", value: "" },
@@ -20,6 +22,7 @@ const CATEGORIES = [
 export default function PantryPage() {
   const { pantryId } = useParams<{ pantryId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   if (!pantryId) {
     return <div className="alert alert-error">Brak identyfikatora spiżarni</div>;
@@ -27,15 +30,16 @@ export default function PantryPage() {
 
   const { products, loading, error, update, remove, refresh } = useProducts(pantryId);
 
-  const [pantryName, setPantryName] = useState("");
+  const [pantry, setPantry] = useState<Pantry | null>(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [showMembers, setShowMembers] = useState(false);
 
   useEffect(() => {
     listPantries().then((list) => {
       const p = list.find((p) => p.id === pantryId);
-      if (p) setPantryName(p.name);
+      if (p) setPantry(p);
     });
   }, [pantryId]);
 
@@ -86,14 +90,22 @@ export default function PantryPage() {
             <button className="btn-back" onClick={() => navigate("/")}>
               ← Spiżarnie
             </button>
-            <h1>{pantryName || "Spiżarnia"}</h1>
+            <h1>{pantry?.name || "Spiżarnia"}</h1>
           </div>
-          <Link
-            to={`/pantries/${pantryId}/products/new`}
-            className="btn btn-primary btn-sm"
-          >
-            + Dodaj produkt
-          </Link>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowMembers(true)}
+            >
+              Członkowie
+            </button>
+            <Link
+              to={`/pantries/${pantryId}/products/new`}
+              className="btn btn-primary btn-sm"
+            >
+              + Dodaj produkt
+            </Link>
+          </div>
         </div>
 
         <div className="filters">
@@ -135,6 +147,15 @@ export default function PantryPage() {
             product={editingProduct}
             onSave={handleSaveEdit}
             onClose={() => setEditingProduct(null)}
+          />
+        )}
+
+        {showMembers && user && pantry && (
+          <PantryMembersModal
+            pantryId={pantryId}
+            currentUserId={user.id}
+            ownerId={pantry.owner_id}
+            onClose={() => setShowMembers(false)}
           />
         )}
       </div>

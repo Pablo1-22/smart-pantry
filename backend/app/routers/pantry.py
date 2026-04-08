@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -17,6 +18,16 @@ from app.schemas.pantry import (
 from app.routers.deps import get_current_user, verify_pantry_access
 
 router = APIRouter(prefix="/api/pantries", tags=["pantries"])
+
+
+def _member_resp(m: PantryMember) -> PantryMemberResponse:
+    return PantryMemberResponse(
+        id=m.id,
+        user_id=m.user_id,
+        user_email=m.user.email,
+        role=m.role,
+        joined_at=m.joined_at,
+    )
 
 
 @router.get("/", response_model=list[PantryResponse])
@@ -91,9 +102,12 @@ async def list_members(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(PantryMember).where(PantryMember.pantry_id == pantry_id)
+        select(PantryMember)
+        .options(selectinload(PantryMember.user))
+        .where(PantryMember.pantry_id == pantry_id)
     )
-    return result.scalars().all()
+    members = result.scalars().all()
+    return [_member_resp(m) for m in members]
 
 
 @router.post("/{pantry_id}/invite", response_model=PantryMemberResponse, status_code=status.HTTP_201_CREATED)
@@ -131,7 +145,14 @@ async def invite_member(
     db.add(member)
     await db.flush()
     await db.refresh(member)
-    return member
+
+    result2 = await db.execute(
+        select(PantryMember)
+        .options(selectinload(PantryMember.user))
+        .where(PantryMember.id == member.id)
+    )
+    member_loaded = result2.scalar_one()
+    return _member_resp(member_loaded)
 
 
 @router.delete("/{pantry_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

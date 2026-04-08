@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -44,8 +45,7 @@ export default function RegisterPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <span className="auth-logo-icon">🥫</span>
-          <span className="auth-logo-name">Smart<span>Pantry</span></span>
+          <img src={logo} alt="SmartPantry" className="auth-logo-img" />
         </div>
         <h1>Rejestracja</h1>
         <p className="auth-subtitle">Utwórz nowe konto</p>

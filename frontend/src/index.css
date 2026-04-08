@@ -519,7 +519,7 @@ body {
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(8, 14, 28, 0.88);
+  background: #000;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   backdrop-filter: blur(20px);
@@ -531,13 +531,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
   margin-bottom: 28px;
 }
 
-.auth-logo-icon { font-size: 2rem; filter: drop-shadow(0 0 8px var(--accent)); }
-.auth-logo-name { font-size: 1.3rem; font-weight: 700; color: var(--text-heading); }
-.auth-logo-name span { color: var(--accent); }
+.auth-logo-img {
+  max-width: 200px;
+  height: auto;
+  display: block;
+}
 
 .auth-card h1 {
   font-size: 1.5rem;
@@ -595,6 +596,12 @@ body {
 .form-group select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #000 inset;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
 }
 
 .form-group select { cursor: pointer; }
@@ -676,6 +683,18 @@ body {
 }
 
 .modal-header h2 { font-size: 1.1rem; color: var(--text-heading); }
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.modal-close:hover { background: rgba(255, 107, 107, 0.15); color: var(--danger); }
 
 /* ===== Empty / loading states ===== */
 .empty-state {
@@ -1009,8 +1028,52 @@ body {
   cursor: default;
   white-space: nowrap;
 }
-.sync-badge--online   { background: rgba(74,222,128,0.15); color: #4ade80; }
+.sync-badge--online   { background: rgba(74,222,128,0.15); color: #4ade80; cursor: pointer; }
+.sync-badge--online:hover { background: rgba(74,222,128,0.28); }
 .sync-badge--offline  { background: rgba(248,113,113,0.15); color: #f87171; }
 .sync-badge--syncing  { background: rgba(96,165,250,0.15);  color: #60a5fa; }
 .sync-badge--pending  { background: rgba(251,191,36,0.15);  color: #fbbf24; cursor: pointer; }
 .sync-badge--error    { background: rgba(248,113,113,0.15); color: #f87171; cursor: pointer; }
+
+/* ── Members modal ── */
+.members-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.member-email {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.member-role {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--glass-light);
+  color: var(--text-muted);
+}
+
+.member-role--owner {
+  background: rgba(0, 212, 170, 0.15);
+  color: var(--accent);
+}
+
+.invite-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.invite-form input {
+  flex: 1;
+}

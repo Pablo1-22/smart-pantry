@@ -1,13 +1,19 @@
 import { useSync } from "../hooks/useSync";
 
 export default function SyncStatus() {
-  const { isOnline, syncState, pendingCount, sync } = useSync();
+  const { isOnline, forcedOffline, syncState, pendingCount, sync, toggleForcedOffline } = useSync();
 
   if (!isOnline) {
     return (
-      <span className="sync-badge sync-badge--offline" title="Tryb offline — zmiany zostaną zsynchronizowane po powrocie do sieci">
-        ● Offline{pendingCount > 0 ? ` (${pendingCount})` : ""}
-      </span>
+      <button
+        className="sync-badge sync-badge--offline"
+        title={forcedOffline ? "Tryb offline wymuszony ręcznie — kliknij, aby wrócić do trybu online" : "Brak połączenia — zmiany zostaną zsynchronizowane po powrocie do sieci"}
+        onClick={forcedOffline ? toggleForcedOffline : undefined}
+        style={forcedOffline ? { cursor: "pointer" } : { cursor: "default" }}
+      >
+        ● {forcedOffline ? "Offline (ręczny)" : "Offline"}
+        {pendingCount > 0 ? ` (${pendingCount})` : ""}
+      </button>
     );
   }
 
@@ -44,8 +50,12 @@ export default function SyncStatus() {
   }
 
   return (
-    <span className="sync-badge sync-badge--online" title="Online — zsynchronizowano">
+    <button
+      className="sync-badge sync-badge--online"
+      title="Online — kliknij, aby symulować tryb offline"
+      onClick={toggleForcedOffline}
+    >
       ✓ Online
-    </span>
+    </button>
   );
 }

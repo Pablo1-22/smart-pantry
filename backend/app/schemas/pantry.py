@@ -26,6 +26,7 @@ class PantryResponse(BaseModel):
 class PantryMemberResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
+    user_email: str
     role: MemberRole
     joined_at: datetime
 

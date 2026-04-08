@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import logo from "../assets/logo.png";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -31,8 +32,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">
-          <span className="auth-logo-icon">🥫</span>
-          <span className="auth-logo-name">Smart<span>Pantry</span></span>
+          <img src={logo} alt="SmartPantry" className="auth-logo-img" />
         </div>
         <h1>Logowanie</h1>
         <p className="auth-subtitle">Zaloguj się do swojego konta</p>
