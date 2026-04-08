@@ -102,7 +102,7 @@ export default function ProductForm({
             id="pf-qty"
             type="number"
             min="0"
-            step="0.01"
+            step={unit === "szt" ? "1" : "0.1"}
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             required
@@ -157,7 +157,7 @@ export default function ProductForm({
           id="pf-min"
           type="number"
           min="0"
-          step="0.01"
+          step={unit === "szt" ? "1" : "0.1"}
           value={minQuantity}
           onChange={(e) => setMinQuantity(e.target.value)}
         />

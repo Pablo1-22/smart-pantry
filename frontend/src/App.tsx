@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import PantryPage from "./pages/PantryPage";
 import AddProductPage from "./pages/AddProductPage";
+import ShoppingListPage from "./pages/ShoppingListPage";
 
 export default function App() {
   return (
@@ -32,6 +33,10 @@ export default function App() {
             <Route
               path="/pantries/:pantryId/products/new"
               element={<AddProductPage />}
+            />
+            <Route
+              path="/pantries/:pantryId/shopping-list"
+              element={<ShoppingListPage />}
             />
           </Route>
 

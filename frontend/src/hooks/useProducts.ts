@@ -41,13 +41,13 @@ export function useProducts(pantryId: string) {
         );
       }
 
+      // Show cached data immediately — no loading spinner if we have something
       setProducts(cached);
-      if (!navigator.onLine) {
-        setLoading(false);
-        return;
-      }
+      setLoading(false);
 
-      // 2. Background refresh from server
+      if (!navigator.onLine) return;
+
+      // 2. Silent background refresh from server (no loading state change)
       try {
         const fresh = await listProducts(pantryId, filters);
         // Persist to IndexedDB (upsert)
@@ -71,8 +71,6 @@ export function useProducts(pantryId: string) {
         setProducts(fresh);
       } catch {
         if (cached.length === 0) setError("Nie udało się pobrać produktów");
-      } finally {
-        setLoading(false);
       }
     },
     [pantryId]

@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import String, DateTime, Float, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -14,7 +15,12 @@ class ShoppingListItem(Base):
     pantry_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pantries.id"), nullable=False)
     product_name: Mapped[str] = mapped_column(String(300), nullable=False)
     quantity: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
+    unit: Mapped[str] = mapped_column(String(20), default="szt", nullable=False)
+    category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_bought: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    source_product_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        ForeignKey("products.id", ondelete="SET NULL"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

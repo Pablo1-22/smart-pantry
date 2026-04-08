@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.product import Product
 from app.models.shopping_list import ShoppingListItem
 from app.schemas.shopping_list import (
     ShoppingListItemCreate,
@@ -68,7 +69,33 @@ async def update_item(
     item = result.scalar_one_or_none()
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    item.is_bought = data.is_bought
+
+    if data.quantity is not None:
+        item.quantity = data.quantity
+
+    # Mark as bought — sync with pantry
+    if data.is_bought is not None:
+        was_bought = item.is_bought
+        item.is_bought = data.is_bought
+
+        if data.is_bought and not was_bought:
+            if item.source_product_id:
+                # Existing product — add quantity
+                prod = await db.get(Product, item.source_product_id)
+                if prod:
+                    prod.quantity += item.quantity
+            else:
+                # New product — create in pantry
+                prod = Product(
+                    pantry_id=pantry_id,
+                    name=item.product_name,
+                    quantity=item.quantity,
+                    unit=item.unit,
+                    category=item.category,
+                    min_quantity=0,
+                )
+                db.add(prod)
+
     await db.flush()
     await db.refresh(item)
     return item

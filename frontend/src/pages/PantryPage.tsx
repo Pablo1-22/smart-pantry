@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useProducts } from "../hooks/useProducts";
 import { useAuth } from "../context/AuthContext";
@@ -43,6 +43,8 @@ export default function PantryPage() {
     });
   }, [pantryId]);
 
+  const isMounted = useRef(false);
+
   const handleSearch = useCallback(() => {
     refresh({
       search: search || undefined,
@@ -51,6 +53,11 @@ export default function PantryPage() {
   }, [search, categoryFilter, refresh]);
 
   useEffect(() => {
+    // Skip first run — useProducts already fetches on mount
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     const timer = setTimeout(handleSearch, 300);
     return () => clearTimeout(timer);
   }, [handleSearch]);
@@ -93,6 +100,12 @@ export default function PantryPage() {
             <h1>{pantry?.name || "Spiżarnia"}</h1>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
+            <Link
+              to={`/pantries/${pantryId}/shopping-list`}
+              className="btn btn-outline btn-sm"
+            >
+              Lista zakupow
+            </Link>
             <button
               className="btn btn-secondary btn-sm"
               onClick={() => setShowMembers(true)}

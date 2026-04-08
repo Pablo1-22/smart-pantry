@@ -9,6 +9,7 @@ export default function Topbar() {
   const onDashboard = useMatch("/");
   const onPantry = useMatch("/pantries/:id");
   const onAdd = useMatch("/pantries/:id/products/new");
+  const onShoppingList = useMatch("/pantries/:id/shopping-list");
 
   function handleLogout() {
     logout();
@@ -26,9 +27,17 @@ export default function Topbar() {
           <Link to="/" className={onDashboard ? "active" : ""}>
             Spiżarnie
           </Link>
-          {(onPantry || onAdd) && (
-            <Link to={window.location.pathname.split("/products")[0]} className="active">
+          {(onPantry || onAdd || onShoppingList) && (
+            <Link
+              to={window.location.pathname.split("/products")[0].split("/shopping-list")[0]}
+              className={onPantry || onAdd ? "active" : ""}
+            >
               Produkty
+            </Link>
+          )}
+          {onShoppingList && (
+            <Link to={window.location.pathname} className="active">
+              Lista zakupow
             </Link>
           )}
         </nav>
