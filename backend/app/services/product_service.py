@@ -8,7 +8,8 @@ from app.models.shopping_list import ShoppingListItem
 
 
 async def generate_shopping_list(pantry_id: uuid.UUID, db: AsyncSession) -> list[ShoppingListItem]:
-    """Generate shopping list items for products below min_quantity."""
+    """Generate shopping list items for products below min_quantity.
+    Skips products already present on the list and not yet bought."""
     result = await db.execute(
         select(Product).where(
             Product.pantry_id == pantry_id,
@@ -18,8 +19,20 @@ async def generate_shopping_list(pantry_id: uuid.UUID, db: AsyncSession) -> list
     )
     low_products = result.scalars().all()
 
+    # Collect source_product_ids already on the list (not bought)
+    existing = await db.execute(
+        select(ShoppingListItem.source_product_id).where(
+            ShoppingListItem.pantry_id == pantry_id,
+            ShoppingListItem.is_bought == False,  # noqa: E712
+            ShoppingListItem.source_product_id.isnot(None),
+        )
+    )
+    already_queued = {row[0] for row in existing.all()}
+
     items = []
     for product in low_products:
+        if product.id in already_queued:
+            continue
         needed = max(product.min_quantity - product.quantity, 1)
         item = ShoppingListItem(
             pantry_id=pantry_id,

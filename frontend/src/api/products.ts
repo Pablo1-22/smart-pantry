@@ -5,6 +5,7 @@ export interface Product {
   pantry_id: string;
   name: string;
   barcode: string | null;
+  image_url: string | null;
   quantity: number;
   unit: string;
   category: string | null;
@@ -17,6 +18,7 @@ export interface Product {
 export interface ProductCreate {
   name: string;
   barcode?: string;
+  image_url?: string;
   quantity: number;
   unit: string;
   category?: string;
@@ -27,6 +29,7 @@ export interface ProductCreate {
 export interface ProductUpdate {
   name?: string;
   barcode?: string;
+  image_url?: string;
   quantity?: number;
   unit?: string;
   category?: string;

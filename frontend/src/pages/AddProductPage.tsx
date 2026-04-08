@@ -63,6 +63,7 @@ export default function AddProductPage() {
         barcode: code,
         name: result.found && result.name ? result.name : undefined,
         category: result.found ? mapCategory(result.category) : undefined,
+        image_url: result.found && result.image_url ? result.image_url : undefined,
       });
       setFormKey((k) => k + 1);
     } catch {

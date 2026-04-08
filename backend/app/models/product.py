@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, date, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, Date, Float, Integer, ForeignKey
+from sqlalchemy import String, Text, DateTime, Date, Float, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -15,6 +15,7 @@ class Product(Base):
     pantry_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pantries.id"), nullable=False)
     name: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
     barcode: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     quantity: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
     unit: Mapped[str] = mapped_column(String(20), default="szt", nullable=False)
     category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

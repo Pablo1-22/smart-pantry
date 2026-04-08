@@ -21,6 +21,7 @@ export default function EditProductModal({ product, onSave, onClose }: Props) {
           initial={{
             name: product.name,
             barcode: product.barcode ?? "",
+            image_url: product.image_url ?? "",
             quantity: product.quantity,
             unit: product.unit,
             category: product.category ?? "",

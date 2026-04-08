@@ -1,6 +1,33 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import axios from "axios";
 import type { ProductCreate } from "../api/products";
+
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 800;
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        if (width > height) {
+          height = Math.round((height * MAX) / width);
+          width = MAX;
+        } else {
+          width = Math.round((width * MAX) / height);
+          height = MAX;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
+    };
+    img.src = url;
+  });
+}
 
 const UNITS = ["szt", "kg", "g", "l", "ml"];
 const CATEGORIES = [
@@ -28,6 +55,7 @@ export default function ProductForm({
 }: Props) {
   const [name, setName] = useState(initial.name ?? "");
   const [barcode, setBarcode] = useState(initial.barcode ?? "");
+  const [imageUrl, setImageUrl] = useState(initial.image_url ?? "");
   const [quantity, setQuantity] = useState(String(initial.quantity ?? "1"));
   const [unit, setUnit] = useState(initial.unit ?? "szt");
   const [category, setCategory] = useState(initial.category ?? "");
@@ -37,6 +65,15 @@ export default function ProductForm({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleImageFile(file: File) {
+    const dataUrl = await compressImage(file);
+    setImageUrl(dataUrl);
+    setShowImagePicker(false);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -54,6 +91,7 @@ export default function ProductForm({
       await onSubmit({
         name: name.trim(),
         barcode: barcode.trim() || undefined,
+        image_url: imageUrl.trim() || undefined,
         quantity: qty,
         unit,
         category: category || undefined,
@@ -94,6 +132,66 @@ export default function ProductForm({
           placeholder="np. 5900259127626"
         />
       </div>
+
+      {imageUrl ? (
+        <div className="form-image-preview">
+          <img
+            src={imageUrl}
+            alt="Podgląd produktu"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+          <button
+            type="button"
+            className="form-image-remove"
+            onClick={() => setImageUrl("")}
+            title="Usuń zdjęcie"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <div className="form-image-add">
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => setShowImagePicker((v) => !v)}
+          >
+            📷 Dodaj zdjęcie
+          </button>
+          {showImagePicker && (
+            <div className="image-picker-menu">
+              <button
+                type="button"
+                onClick={() => { setShowImagePicker(false); cameraInputRef.current?.click(); }}
+              >
+                📷 Aparat
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowImagePicker(false); fileInputRef.current?.click(); }}
+              >
+                📁 Plik
+              </button>
+            </div>
+          )}
+          {/* hidden inputs */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture={"environment" as never}
+            style={{ display: "none" }}
+            onChange={(e) => { if (e.target.files?.[0]) handleImageFile(e.target.files[0]); }}
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => { if (e.target.files?.[0]) handleImageFile(e.target.files[0]); }}
+          />
+        </div>
+      )}
 
       <div className="form-row">
         <div className="form-group">

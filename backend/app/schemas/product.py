@@ -8,6 +8,7 @@ from pydantic import BaseModel, field_validator
 class ProductCreate(BaseModel):
     name: str
     barcode: Optional[str] = None
+    image_url: Optional[str] = None
     quantity: float = 1.0
     unit: str = "szt"
     category: Optional[str] = None
@@ -25,6 +26,7 @@ class ProductCreate(BaseModel):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     barcode: Optional[str] = None
+    image_url: Optional[str] = None
     quantity: Optional[float] = None
     unit: Optional[str] = None
     category: Optional[str] = None
@@ -44,6 +46,7 @@ class ProductResponse(BaseModel):
     pantry_id: uuid.UUID
     name: str
     barcode: Optional[str]
+    image_url: Optional[str]
     quantity: float
     unit: str
     category: Optional[str]

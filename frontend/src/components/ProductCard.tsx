@@ -32,6 +32,14 @@ export default function ProductCard({ product, onEdit, onDelete }: Props) {
 
   return (
     <div className={`product-card ${status === "expired" ? "card-expired" : status === "soon" ? "card-soon" : ""}`}>
+      {product.image_url && (
+        <img
+          src={product.image_url}
+          alt={product.name}
+          className="product-thumb"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+        />
+      )}
       <div className="product-card-main">
         <div className="product-info">
           <span className="product-name">{product.name}</span>
