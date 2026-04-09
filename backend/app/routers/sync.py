@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
+from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -120,6 +121,9 @@ async def push_changes(
 
     await db.flush()
     results.sort(key=lambda r: r.index)
+    ok = sum(1 for r in results if r.success)
+    failed = len(results) - ok
+    logger.info("Sync push user={} — akcji: {}, ok: {}, błędów: {}", user.id, len(results), ok, failed)
     return SyncPushResponse(results=results)
 
 

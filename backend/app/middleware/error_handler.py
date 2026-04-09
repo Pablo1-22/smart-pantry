@@ -1,10 +1,7 @@
-import logging
-
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from loguru import logger
 from sqlalchemy.exc import IntegrityError
-
-logger = logging.getLogger("smart_pantry")
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:

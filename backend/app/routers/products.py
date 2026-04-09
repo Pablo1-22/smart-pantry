@@ -2,6 +2,7 @@ import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,6 +42,7 @@ async def create_product(
     db.add(product)
     await db.flush()
     await db.refresh(product)
+    logger.info("Dodano produkt '{}' do spiżarni {}", product.name, pantry_id)
     return product
 
 
@@ -94,4 +96,5 @@ async def delete_product(
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    logger.info("Usunięto produkt '{}' ({}) ze spiżarni {}", product.name, product_id, pantry_id)
     await db.delete(product)
