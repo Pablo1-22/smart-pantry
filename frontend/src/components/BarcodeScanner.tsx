@@ -55,7 +55,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
         const focusModes = capabilities.focusMode as string[] | undefined;
         if (focusModes?.includes("continuous")) {
           track
-            .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as MediaTrackConstraints)
+            .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as unknown as MediaTrackConstraints)
             .catch(() => {});
         }
       })
@@ -76,10 +76,10 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
     try {
       await track.applyConstraints({
         advanced: [{ focusMode: "single-shot" }],
-      } as MediaTrackConstraints);
+      } as unknown as MediaTrackConstraints);
       setTimeout(() => {
         track
-          .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as MediaTrackConstraints)
+          .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as unknown as MediaTrackConstraints)
           .catch(() => {});
       }, 800);
     } catch {}
@@ -93,7 +93,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
     try {
       await track.applyConstraints({
         advanced: [{ torch: next }],
-      } as MediaTrackConstraints);
+      } as unknown as MediaTrackConstraints);
       setTorchOn(next);
     } catch {}
   }
