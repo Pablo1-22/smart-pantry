@@ -5,8 +5,17 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # Database
+    # Database — Railway provides postgres:// or postgresql://, we need postgresql+asyncpg://
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/smart_pantry"
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def fix_db_url(cls, v: str) -> str:
+        if v.startswith("postgres://"):
+            return v.replace("postgres://", "postgresql+asyncpg://", 1)
+        if v.startswith("postgresql://"):
+            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
 
     # JWT
     JWT_SECRET_KEY: str = "86XmtomAX9S15Ax8obcHiZCwGIMGnsfnkNI6_1TtMH8"
@@ -14,16 +23,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # CORS — accepts comma-separated string or JSON array in env var
+    # CORS — plain string, parsed in main.py
     # Example: CORS_ORIGINS=https://frontend.up.railway.app,http://localhost:5173
-    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
-
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, v: object) -> object:
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+    CORS_ORIGINS: str = "http://localhost:5173"
 
     # Open Food Facts
     OPEN_FOOD_FACTS_URL: str = "https://world.openfoodfacts.org/api/v2/product"
