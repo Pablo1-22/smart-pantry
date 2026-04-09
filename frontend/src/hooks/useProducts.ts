@@ -21,7 +21,6 @@ export function useProducts(pantryId: string) {
   // ── initial load ──────────────────────────────────────────────────────────
   const fetch = useCallback(
     async (filters?: ProductFilters) => {
-      setLoading(true);
       setError("");
 
       // 1. Serve from IndexedDB immediately (works offline)
@@ -30,7 +29,6 @@ export function useProducts(pantryId: string) {
         .equals(pantryId)
         .toArray();
 
-      // Apply local filters (only when not fetching from server)
       if (filters?.search || filters?.category) {
         const search = filters.search?.toLowerCase() ?? "";
         const cat = filters.category ?? "";
@@ -41,19 +39,24 @@ export function useProducts(pantryId: string) {
         );
       }
 
-      // Show cached data immediately — no loading spinner if we have something
-      setProducts(cached);
-      setLoading(false);
+      if (cached.length > 0) {
+        // Data in cache — show it immediately, skip spinner entirely
+        setProducts(cached);
+        setLoading(false);
+      } else {
+        // Nothing cached — show spinner until API responds
+        setLoading(true);
+      }
 
-      if (!navigator.onLine) return;
+      if (!navigator.onLine) {
+        setLoading(false);
+        return;
+      }
 
-      // 2. Silent background refresh from server (no loading state change)
+      // 2. Silent background refresh from server
       try {
         const fresh = await listProducts(pantryId, filters);
-        // Persist to IndexedDB (upsert)
         await db.products.bulkPut(fresh);
-        // Remove products deleted on server (only when no filters active)
-        // BUT keep products that have pending offline creates (not yet synced)
         if (!filters?.search && !filters?.category) {
           const freshIds = new Set(fresh.map((p) => p.id));
           const pendingCreates = (await db.pending_actions.toArray())
@@ -71,6 +74,8 @@ export function useProducts(pantryId: string) {
         setProducts(fresh);
       } catch {
         if (cached.length === 0) setError("Nie udało się pobrać produktów");
+      } finally {
+        setLoading(false);
       }
     },
     [pantryId]

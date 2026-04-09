@@ -18,7 +18,7 @@ export interface Product {
 export interface ProductCreate {
   name: string;
   barcode?: string;
-  image_url?: string;
+  image_url?: string | null;
   quantity: number;
   unit: string;
   category?: string;

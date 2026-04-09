@@ -261,6 +261,32 @@ body {
   color: var(--text-muted);
 }
 
+.pantry-expiry {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pantry-expiry-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pantry-expiry-warn {
+  font-size: 0.78rem;
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.pantry-expiry-danger {
+  font-size: 0.78rem;
+  color: var(--danger);
+  font-weight: 600;
+}
+
 /* ===== Create pantry form ===== */
 .create-pantry-form {
   display: flex;

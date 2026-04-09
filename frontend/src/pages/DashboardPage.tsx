@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePantries } from "../hooks/usePantries";
 import { usePantryIcons, DEFAULT_ICON } from "../hooks/usePantryIcons";
 import IconPicker from "../components/IconPicker";
+import { db } from "../db/dexie";
+
+interface ExpiryStats {
+  expired: number;
+  expiring: number;
+}
 
 export default function DashboardPage() {
   const { pantries, loading, error, add, remove } = usePantries();
@@ -17,6 +23,30 @@ export default function DashboardPage() {
 
   // Picker for existing pantry
   const [editingIconId, setEditingIconId] = useState<string | null>(null);
+  const [expiryStats, setExpiryStats] = useState<Map<string, ExpiryStats>>(new Map());
+
+  useEffect(() => {
+    async function loadExpiryStats() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const in3Days = new Date(today);
+      in3Days.setDate(today.getDate() + 3);
+
+      const products = await db.products.filter(p => p.expiry_date != null).toArray();
+
+      const stats = new Map<string, ExpiryStats>();
+      for (const p of products) {
+        const exp = new Date(p.expiry_date!);
+        exp.setHours(0, 0, 0, 0);
+        const curr = stats.get(p.pantry_id) ?? { expired: 0, expiring: 0 };
+        if (exp < today) curr.expired++;
+        else if (exp <= in3Days) curr.expiring++;
+        stats.set(p.pantry_id, curr);
+      }
+      setExpiryStats(stats);
+    }
+    loadExpiryStats();
+  }, [pantries]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -118,6 +148,21 @@ export default function DashboardPage() {
               <span className="pantry-date">
                 {new Date(pantry.created_at).toLocaleDateString("pl-PL")}
               </span>
+              {(() => {
+                const s = expiryStats.get(pantry.id);
+                if (!s || (s.expired === 0 && s.expiring === 0)) return null;
+                return (
+                  <div className="pantry-expiry">
+                    <span className="pantry-expiry-label">Data ważności:</span>
+                    {s.expiring > 0 && (
+                      <span className="pantry-expiry-warn">Wygasa: {s.expiring}</span>
+                    )}
+                    {s.expired > 0 && (
+                      <span className="pantry-expiry-danger">Wygasło: {s.expired}</span>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
             <button
               className="btn-icon btn-danger"

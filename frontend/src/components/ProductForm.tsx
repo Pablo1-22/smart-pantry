@@ -91,7 +91,7 @@ export default function ProductForm({
       await onSubmit({
         name: name.trim(),
         barcode: barcode.trim() || undefined,
-        image_url: imageUrl.trim() || undefined,
+        image_url: imageUrl.trim() || null,
         quantity: qty,
         unit,
         category: category || undefined,
