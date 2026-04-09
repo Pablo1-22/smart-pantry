@@ -101,6 +101,7 @@ export function useProducts(pantryId: string) {
         pantry_id: pantryId,
         name: payload.name,
         barcode: payload.barcode ?? null,
+        image_url: payload.image_url ?? null,
         quantity: payload.quantity,
         unit: payload.unit,
         category: payload.category ?? null,

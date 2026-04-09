@@ -29,7 +29,7 @@ export interface ProductCreate {
 export interface ProductUpdate {
   name?: string;
   barcode?: string;
-  image_url?: string;
+  image_url?: string | null;
   quantity?: number;
   unit?: string;
   category?: string;
