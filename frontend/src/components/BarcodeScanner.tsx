@@ -27,15 +27,32 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
 
     async function start() {
       try {
-        // Pobieramy stream sami — ZXing nie dostaje szansy na wywołanie getUserMedia
-        // przed tym, zanim zdążymy ustawić focus i sprawdzić latarkę.
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        });
+        // Próbujemy z advanced constraints (sygnalizujemy chęć użycia torch + focus).
+        // Na Androidzie/Chrome to "odblokuje" te możliwości w getCapabilities().
+        // Jeśli advanced constraints rzucą błąd (np. iOS), ponawiamy bez nich.
+        let stream: MediaStream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+              advanced: [
+                { focusMode: "continuous" } as any,
+                { torch: false } as any,
+              ],
+            } as MediaTrackConstraints,
+          });
+        } catch {
+          // Fallback: bez advanced constraints (np. Safari / starsze urządzenia)
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+          });
+        }
 
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
@@ -48,22 +65,43 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
 
         const track = stream.getVideoTracks()[0];
 
-        // Kamera jest już gotowa (play() się rozwiązał) — teraz getCapabilities()
-        // zwróci pełne dane, a nie pusty obiekt.
-        applyFocus(track);
-        detectTorch(track);
+        // Polling capabilities — Samsung/Android populuje je leniwie.
+        // Sprawdzamy co 300 ms przez maks. 4 sekundy.
+        let attempts = 0;
+        const capPoll = setInterval(() => {
+          if (cancelled || attempts++ > 13) {
+            clearInterval(capPoll);
+            return;
+          }
+          try {
+            const cap = track.getCapabilities() as any;
 
-        // Niektóre sterowniki Androida populują capabilities z opóźnieniem
-        const retryTimer = setTimeout(() => {
-          if (!cancelled) detectTorch(track);
-        }, 700);
+            if (cap.torch) setTorchAvailable(true);
 
-        // decodeFromVideoElement nie wywołuje getUserMedia — używa istniejącego srcObject
+            if (cap.focusMode?.length > 0) {
+              const modes: string[] = cap.focusMode;
+              const mode = modes.includes("continuous")
+                ? "continuous"
+                : modes.includes("auto")
+                ? "auto"
+                : null;
+              if (mode) {
+                track
+                  .applyConstraints({ advanced: [{ focusMode: mode }] } as any)
+                  .catch(() => {});
+                clearInterval(capPoll); // focus ustawiony — nie trzeba dalej pollować
+              }
+            }
+          } catch {}
+        }, 300);
+
+        // decodeFromVideoElement: ZXing widzi grające video z srcObject
         const controls = await reader.decodeFromVideoElement(
           video,
           (result) => {
             if (result && !doneRef.current) {
               doneRef.current = true;
+              clearInterval(capPoll);
               onScanRef.current(result.getText());
             }
           }
@@ -71,40 +109,14 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
 
         if (cancelled) {
           controls.stop();
-          clearTimeout(retryTimer);
+          clearInterval(capPoll);
           return;
         }
 
         controlsRef.current = controls;
-
-        return () => clearTimeout(retryTimer);
       } catch (err: any) {
         if (!cancelled) setCameraError(err.message || "Brak dostępu do kamery");
       }
-    }
-
-    function detectTorch(track: MediaStreamTrack) {
-      try {
-        const cap = track.getCapabilities() as Record<string, unknown>;
-        if (cap.torch) setTorchAvailable(true);
-      } catch {}
-    }
-
-    function applyFocus(track: MediaStreamTrack) {
-      try {
-        const cap = track.getCapabilities() as any;
-        const modes: string[] = cap.focusMode ?? [];
-        const mode = modes.includes("continuous")
-          ? "continuous"
-          : modes.includes("auto")
-          ? "auto"
-          : null;
-        if (mode) {
-          track
-            .applyConstraints({ advanced: [{ focusMode: mode }] } as any)
-            .catch(() => {});
-        }
-      } catch {}
     }
 
     start();
