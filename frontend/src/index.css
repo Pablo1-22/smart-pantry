@@ -1530,3 +1530,125 @@ body {
 .sl-qty-input:hover::-webkit-outer-spin-button {
   filter: invert(1) brightness(1) sepia(1) hue-rotate(120deg) saturate(3);
 }
+
+/* ===== Responsive — Mobile (≤ 640px) ===== */
+@media (max-width: 640px) {
+
+  /* ── Topbar ── */
+  .topbar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .topbar-brand-logo {
+    height: 28px;
+  }
+
+  /* Hide nav links — back button in PantryPage is enough */
+  .topbar-nav {
+    display: none;
+  }
+
+  /* Sync badge — show only the leading icon, hide text */
+  .sync-badge {
+    max-width: 30px;
+    overflow: hidden;
+    padding: 4px 7px;
+    letter-spacing: 0;
+  }
+
+  /* ── Pantry-page layout: sidebar stacks above content ── */
+  .pantry-layout {
+    flex-direction: column;
+  }
+
+  /* Sidebar → horizontal scrollable filter chips */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 12px;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    gap: 6px;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+
+  .sidebar-section { display: none; }
+
+  .sidebar-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    width: auto;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  /* ── Main content ── */
+  .main-content {
+    padding: 14px 16px;
+  }
+
+  /* ── Page header: title + buttons wrap vertically ── */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .page-header > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  /* ── Pantry grid: 2 columns ── */
+  .pantry-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .pantry-card {
+    padding: 14px 12px;
+  }
+
+  /* ── Modals: full-width with margins ── */
+  .modal {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100dvh - 80px);
+    overflow-y: auto;
+  }
+
+  /* ── Buttons ── */
+  .btn-sm {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+  }
+
+  /* ── Filters row ── */
+  .filters {
+    margin-bottom: 14px;
+  }
+
+  /* ── Product cards ── */
+  .product-card {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .product-thumb {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -74,7 +74,7 @@ export default function PantryPage() {
   }
 
   return (
-    <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+    <div className="pantry-layout" style={{ display: "flex", flex: 1, minHeight: 0 }}>
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-section">Pantry Zone</div>
