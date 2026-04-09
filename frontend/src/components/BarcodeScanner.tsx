@@ -9,6 +9,7 @@ interface Props {
 export default function BarcodeScanner({ onScan, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const doneRef = useRef(false);
   const onScanRef = useRef(onScan);
   onScanRef.current = onScan;
@@ -20,80 +21,123 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
 
   useEffect(() => {
     if (!videoRef.current) return;
+    let cancelled = false;
+    const video = videoRef.current;
     const reader = new BrowserMultiFormatReader();
 
-    reader
-      .decodeFromConstraints(
-        {
+    async function start() {
+      try {
+        // Pobieramy stream sami — ZXing nie dostaje szansy na wywołanie getUserMedia
+        // przed tym, zanim zdążymy ustawić focus i sprawdzić latarkę.
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: { ideal: "environment" }, // rear camera
+            facingMode: { ideal: "environment" },
             width: { ideal: 1920 },
             height: { ideal: 1080 },
           },
-        },
-        videoRef.current,
-        (result) => {
-          if (result && !doneRef.current) {
-            doneRef.current = true;
-            controlsRef.current?.stop();
-            onScanRef.current(result.getText());
-          }
+        });
+
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
         }
-      )
-      .then((controls) => {
+
+        streamRef.current = stream;
+        video.srcObject = stream;
+        await video.play();
+
+        const track = stream.getVideoTracks()[0];
+
+        // Kamera jest już gotowa (play() się rozwiązał) — teraz getCapabilities()
+        // zwróci pełne dane, a nie pusty obiekt.
+        applyFocus(track);
+        detectTorch(track);
+
+        // Niektóre sterowniki Androida populują capabilities z opóźnieniem
+        const retryTimer = setTimeout(() => {
+          if (!cancelled) detectTorch(track);
+        }, 700);
+
+        // decodeFromVideoElement nie wywołuje getUserMedia — używa istniejącego srcObject
+        const controls = await reader.decodeFromVideoElement(
+          video,
+          (result) => {
+            if (result && !doneRef.current) {
+              doneRef.current = true;
+              onScanRef.current(result.getText());
+            }
+          }
+        );
+
+        if (cancelled) {
+          controls.stop();
+          clearTimeout(retryTimer);
+          return;
+        }
+
         controlsRef.current = controls;
 
-        // After stream starts — configure autofocus & check torch
-        const stream = videoRef.current?.srcObject as MediaStream | null;
-        const track = stream?.getVideoTracks()[0];
-        if (!track) return;
+        return () => clearTimeout(retryTimer);
+      } catch (err: any) {
+        if (!cancelled) setCameraError(err.message || "Brak dostępu do kamery");
+      }
+    }
 
-        const capabilities = track.getCapabilities() as Record<string, unknown>;
+    function detectTorch(track: MediaStreamTrack) {
+      try {
+        const cap = track.getCapabilities() as Record<string, unknown>;
+        if (cap.torch) setTorchAvailable(true);
+      } catch {}
+    }
 
-        if (capabilities.torch) setTorchAvailable(true);
-
-        const focusModes = capabilities.focusMode as string[] | undefined;
-        if (focusModes?.includes("continuous")) {
+    function applyFocus(track: MediaStreamTrack) {
+      try {
+        const cap = track.getCapabilities() as any;
+        const modes: string[] = cap.focusMode ?? [];
+        const mode = modes.includes("continuous")
+          ? "continuous"
+          : modes.includes("auto")
+          ? "auto"
+          : null;
+        if (mode) {
           track
-            .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as unknown as MediaTrackConstraints)
+            .applyConstraints({ advanced: [{ focusMode: mode }] } as any)
             .catch(() => {});
         }
-      })
-      .catch((err: Error) => {
-        setCameraError(err.message || "Brak dostępu do kamery");
-      });
+      } catch {}
+    }
+
+    start();
 
     return () => {
+      cancelled = true;
       controlsRef.current?.stop();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
-  // Tap on video = single-shot focus, then back to continuous
+  // Kliknięcie = jednorazowy focus, potem wróć do ciągłego
   async function handleTapToFocus() {
-    const stream = videoRef.current?.srcObject as MediaStream | null;
-    const track = stream?.getVideoTracks()[0];
+    const track = streamRef.current?.getVideoTracks()[0];
     if (!track) return;
     try {
       await track.applyConstraints({
         advanced: [{ focusMode: "single-shot" }],
-      } as unknown as MediaTrackConstraints);
+      } as any);
       setTimeout(() => {
         track
-          .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as unknown as MediaTrackConstraints)
+          .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as any)
           .catch(() => {});
       }, 800);
     } catch {}
   }
 
   async function toggleTorch() {
-    const stream = videoRef.current?.srcObject as MediaStream | null;
-    const track = stream?.getVideoTracks()[0];
+    const track = streamRef.current?.getVideoTracks()[0];
     if (!track) return;
     const next = !torchOn;
     try {
-      await track.applyConstraints({
-        advanced: [{ torch: next }],
-      } as unknown as MediaTrackConstraints);
+      await track.applyConstraints({ advanced: [{ torch: next }] } as any);
       setTorchOn(next);
     } catch {}
   }
@@ -104,6 +148,7 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
     if (!code) return;
     doneRef.current = true;
     controlsRef.current?.stop();
+    streamRef.current?.getTracks().forEach((t) => t.stop());
     onScanRef.current(code);
   }
 
