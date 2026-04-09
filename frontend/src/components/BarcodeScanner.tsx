@@ -15,21 +15,49 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
 
   const [cameraError, setCameraError] = useState("");
   const [manualCode, setManualCode] = useState("");
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchAvailable, setTorchAvailable] = useState(false);
 
   useEffect(() => {
     if (!videoRef.current) return;
     const reader = new BrowserMultiFormatReader();
 
     reader
-      .decodeFromVideoDevice(undefined, videoRef.current, (result) => {
-        if (result && !doneRef.current) {
-          doneRef.current = true;
-          controlsRef.current?.stop();
-          onScanRef.current(result.getText());
+      .decodeFromConstraints(
+        {
+          video: {
+            facingMode: { ideal: "environment" }, // rear camera
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+        },
+        videoRef.current,
+        (result) => {
+          if (result && !doneRef.current) {
+            doneRef.current = true;
+            controlsRef.current?.stop();
+            onScanRef.current(result.getText());
+          }
         }
-      })
+      )
       .then((controls) => {
         controlsRef.current = controls;
+
+        // After stream starts — configure autofocus & check torch
+        const stream = videoRef.current?.srcObject as MediaStream | null;
+        const track = stream?.getVideoTracks()[0];
+        if (!track) return;
+
+        const capabilities = track.getCapabilities() as Record<string, unknown>;
+
+        if (capabilities.torch) setTorchAvailable(true);
+
+        const focusModes = capabilities.focusMode as string[] | undefined;
+        if (focusModes?.includes("continuous")) {
+          track
+            .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as MediaTrackConstraints)
+            .catch(() => {});
+        }
       })
       .catch((err: Error) => {
         setCameraError(err.message || "Brak dostępu do kamery");
@@ -39,6 +67,36 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
       controlsRef.current?.stop();
     };
   }, []);
+
+  // Tap on video = single-shot focus, then back to continuous
+  async function handleTapToFocus() {
+    const stream = videoRef.current?.srcObject as MediaStream | null;
+    const track = stream?.getVideoTracks()[0];
+    if (!track) return;
+    try {
+      await track.applyConstraints({
+        advanced: [{ focusMode: "single-shot" }],
+      } as MediaTrackConstraints);
+      setTimeout(() => {
+        track
+          .applyConstraints({ advanced: [{ focusMode: "continuous" }] } as MediaTrackConstraints)
+          .catch(() => {});
+      }, 800);
+    } catch {}
+  }
+
+  async function toggleTorch() {
+    const stream = videoRef.current?.srcObject as MediaStream | null;
+    const track = stream?.getVideoTracks()[0];
+    if (!track) return;
+    const next = !torchOn;
+    try {
+      await track.applyConstraints({
+        advanced: [{ torch: next }],
+      } as MediaTrackConstraints);
+      setTorchOn(next);
+    } catch {}
+  }
 
   function handleManualSubmit(e: FormEvent) {
     e.preventDefault();
@@ -69,15 +127,26 @@ export default function BarcodeScanner({ onScan, onClose }: Props) {
               muted
               playsInline
               className="scanner-video"
+              onClick={handleTapToFocus}
             />
             <div className="scanner-frame">
               <div className="scanner-line" />
             </div>
+            {torchAvailable && (
+              <button
+                type="button"
+                className={`scanner-torch ${torchOn ? "active" : ""}`}
+                onClick={toggleTorch}
+                title={torchOn ? "Wyłącz latarkę" : "Włącz latarkę"}
+              >
+                {torchOn ? "🔦" : "💡"}
+              </button>
+            )}
           </div>
         )}
 
         <p className="scanner-hint">
-          Skieruj kamerę na kod kreskowy produktu (EAN-13, EAN-8, QR…)
+          Skieruj kamerę na kod kreskowy • dotknij obrazu aby ustawić ostrość
         </p>
 
         <div className="scanner-divider">lub wpisz ręcznie</div>
