@@ -35,6 +35,7 @@ export default function PantryPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [showMembers, setShowMembers] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     listPantries().then((list) => {
@@ -75,14 +76,20 @@ export default function PantryPage() {
 
   return (
     <div className="pantry-layout" style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : ""}`}>
+        <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>✕</button>
         <div className="sidebar-section">Pantry Zone</div>
         {CATEGORIES.map((cat) => (
           <button
             key={cat.value}
             className={`sidebar-item ${categoryFilter === cat.value ? "active" : ""}`}
-            onClick={() => setCategoryFilter(cat.value)}
+            onClick={() => { setCategoryFilter(cat.value); setSidebarOpen(false); }}
           >
             <span className="sidebar-item-icon">{cat.icon}</span>
             {cat.label}
@@ -94,9 +101,18 @@ export default function PantryPage() {
       <div className="main-content">
         <div className="page-header">
           <div className="page-header-left">
-            <button className="btn-back" onClick={() => navigate("/")}>
-              ← Spiżarnie
-            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <button className="btn-back" onClick={() => navigate("/")}>
+                ← Spiżarnie
+              </button>
+              <button
+                className="burger-btn"
+                onClick={() => setSidebarOpen(true)}
+                title="Kategorie"
+              >
+                ☰
+              </button>
+            </div>
             <h1>{pantry?.name || "Spiżarnia"}</h1>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
