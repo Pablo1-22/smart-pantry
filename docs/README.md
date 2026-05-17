@@ -58,7 +58,7 @@ System składa się z trzech warstw:
 
 | Moduł | Opis |
 |-------|------|
-| **Uwierzytelnianie** | Rejestracja, logowanie, JWT access + refresh token |
+| **Uwierzytelnianie** | Rejestracja, logowanie, JWT access + refresh token, usuwanie konta |
 | **Spiżarnie** | Tworzenie, edycja, usuwanie, zapraszanie członków |
 | **Produkty** | Pełny CRUD, filtrowanie po kategorii i wyszukiwanie |
 | **Skaner kodów** | Skanowanie EAN-13/8/QR → autouzupełnianie z Open Food Facts |
@@ -112,11 +112,11 @@ System składa się z trzech warstw:
 
 | Technologia | Wersja | Rola |
 |-------------|--------|------|
-| **React** | 18 | Framework UI |
+| **React** | 19 | Framework UI |
 | **TypeScript** | 5 | Statyczne typowanie |
-| **Vite** | 5 | Bundler i serwer deweloperski |
-| **React Router** | 6 | Routing SPA |
-| **Axios** | 1.7 | Klient HTTP (interceptory JWT) |
+| **Vite** | 8 | Bundler i serwer deweloperski |
+| **React Router** | 7 | Routing SPA |
+| **Axios** | 1.14 | Klient HTTP (interceptory JWT) |
 | **Dexie.js** | 4 | Wrapper IndexedDB (lokalna baza offline) |
 | **@zxing/browser** | 0.1 | Skaner kodów kreskowych (kamera) |
 
@@ -276,7 +276,7 @@ docker compose up --build
 
 ```bash
 cd smart-pantry
-python seed.py twoj@email.pl twoje_haslo
+python seed.py twoj@email.pl twoje_haslo --url https://smart-pantry-production-1680.up.railway.app (dla konta railway)
 ```
 
 ### Zatrzymanie
