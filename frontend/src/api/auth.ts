@@ -33,3 +33,7 @@ export async function loginUser(payload: LoginPayload): Promise<TokenPair> {
   const { data } = await client.post<TokenPair>("/api/auth/login", payload);
   return data;
 }
+
+export async function deleteAccount(): Promise<void> {
+  await client.delete("/api/auth/me");
+}

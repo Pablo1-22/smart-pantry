@@ -36,20 +36,20 @@ services:
       - ./backend:/app
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
     restart: unless-stopped
     ports:
-      - "5173:5173"
+      - "5173:3000"
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:5173 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:3000 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
 
 volumes:
   pgdata:

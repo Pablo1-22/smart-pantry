@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { jwtDecode } from "./jwtDecode";
-import { loginUser, registerUser, type LoginPayload, type RegisterPayload } from "../api/auth";
+import { loginUser, registerUser, deleteAccount as apiDeleteAccount, type LoginPayload, type RegisterPayload } from "../api/auth";
 
 interface AuthUser {
   id: string;
@@ -19,6 +19,7 @@ interface AuthContextType {
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -63,8 +64,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    await apiDeleteAccount();
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setUser(null);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
