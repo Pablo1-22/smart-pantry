@@ -74,7 +74,7 @@ Logowanie — zwraca parę tokenów JWT.
 }
 ```
 
-> `access_token` — krótkotrwały (15 min), używany w nagłówku `Authorization`  
+> `access_token` — krótkotrwały (30 min), używany w nagłówku `Authorization`  
 > `refresh_token` — długotrwały (7 dni), używany wyłącznie do odświeżenia access tokena
 
 **Błędy:** `401` — nieprawidłowe dane logowania
